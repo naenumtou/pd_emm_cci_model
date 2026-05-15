@@ -89,3 +89,55 @@ def ever_default(
     )
 
     return df
+
+# Count migration
+def count_migration(
+    period_col: pd.Series,
+    del1_col: pd.Series,
+    del12_col: pd.Series
+) -> None:
+
+    """
+    Migration count.
+
+    Description:
+        Compute raw summary of migration in the monthly basis.
+
+    Args:
+        period_col (pd.Series)    : Period key for summary.
+        del1_col (pd.Series)      : Initial observation period.
+        del12_col (pd.Series)     : Performance period.
+
+    Returns:
+        Parquet file: Storaged file as .parquet format in '../data/processed'.
+
+    Notes:
+        - This is a input for further CCI Modeling steps.
+    """
+
+    print("=== Processing ===\n[Migration count]")
+    
+    filename = "migration_count"
+
+    df = pd.DataFrame(
+        {
+            "date": period_col,
+            "del": del1_col,
+            'del12': del12_col
+        }
+    )
+    df["date"] = pd.to_datetime(df["date"])
+    df["del"] = df["del"].astype(int)
+    df["del12"] = df["del12"].astype(int)
+
+    agg = {
+        "n": ("del", "size")
+    }
+
+    migrate = df.groupby(["date", "del", "del12"], as_index = False).agg(**agg)
+    migrate.to_parquet(
+        f"../data/processed/{filename}.parquet",
+        engine = 'pyarrow'
+        )
+
+    return print(f"[INFO]: Export - '..data/processed/{filename}.parquet'")
