@@ -126,6 +126,7 @@ def monthly_matrix(
         - The monthly migration needs to be a symmetry matrix due to some month may not
           have full observations count. For example, lack of accounts migrated from 1 to 3.
           If the table does not symmetry, the matrix is wrong computation.
+        - It needs to remove the last row on each month as absorbing state.
     """
 
     # Define all states
