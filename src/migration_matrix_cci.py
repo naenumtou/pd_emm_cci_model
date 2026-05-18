@@ -27,8 +27,8 @@ def avg_matrix(
 
     Args:
         df (pd.DataFrame)         : Input data table as the long format, counted observation.
-        del1_col (pd.Series)      : Initial observation period.
-        del12_col (pd.Series)     : Performance period.
+        del1_col (pd.Series)      : Initial observation column name.
+        del12_col (pd.Series)     : Performance column name.
 
     Returns:
         pd.DataFrame: Average migration matrix (n x n) shape.
@@ -94,3 +94,64 @@ def upper_threshold(
     )
 
     return upper[:-1] #Remove the last row
+
+# Monthly matrix
+def monthly_matrix(
+    df: pd.DataFrame,
+    date_col: str,
+    del1_col: str,
+    del12_col: str
+) -> pd.DataFrame:
+    
+    """
+    Monthly migration matrix.
+
+    Description:
+        Compute the monthly migration matrix. The migration matrix simply captures the rate
+        of migration between different buckets for the accounts observed at any observation
+        months to performance months. The rates are computing by counting the accounts
+        migration divided by initial accounts at observed.
+
+    Args:
+        df (pd.DataFrame)         : Input data table as the long format, counted observation.
+        date_col (pd.Series)      : Period column name.
+        del1_col (pd.Series)      : Initial observation column name.
+        del12_col (pd.Series)     : Performance column name.
+
+    Returns:
+        pd.DataFrame: Monthly migration matrix (m x n - 1 x n) shape.
+
+    Notes:
+        - The same computation as average migration matrix but it is in monthly basis.
+        - The monthly migration needs to be a symmetry matrix due to some month may not
+          have full observations count. For example, lack of accounts migrated from 1 to 3.
+          If the table does not symmetry, the matrix is wrong computation.
+    """
+
+    # Define all states
+    states = np.arange(df[[del1_col, del12_col]].max().max() + 1) #Migration matrix always defines maximum value at worst
+
+    # Aggregate first
+    df_agg = df.groupby([date_col, del1_col, del12_col])["n"].sum()
+
+    # Create full index grid
+    full_index = pd.MultiIndex.from_product(
+        [df[date_col].unique(), states, states],
+        names = [date_col, del1_col, del12_col]
+    )
+    
+    # Reindex to enforce symmetry
+    df_full = df_agg.reindex(full_index, fill_value = 0)
+
+    # Pivot
+    monthly_migration = df_full.unstack(del12_col, fill_value = 0)
+
+    # Remove del = max state (default)
+    monthly_migration = monthly_migration.loc[
+        monthly_migration.index.get_level_values(del1_col) != states[-1]
+    ]
+
+    # Normalize (to percent)
+    return monthly_migration.div(
+        monthly_migration.sum(axis = 1), axis = 0
+    ).fillna(0)
