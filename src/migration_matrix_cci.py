@@ -22,7 +22,10 @@ def avg_matrix(
     Average migration matrix.
 
     Description:
-        Compute the average migration matrix.
+        Compute the average migration matrix. The migration matrix simply captures the rate
+        of migration between different buckets for the accounts observed at any observation
+        months to performance months. The rates are computing by counting the accounts
+        migration divided by initial accounts at observed.
 
     Args:
         df (pd.DataFrame)         : Input data table as the long format, counted observation.
