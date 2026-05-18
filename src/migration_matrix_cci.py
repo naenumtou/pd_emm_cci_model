@@ -8,8 +8,6 @@ warnings.filterwarnings('ignore', category = RuntimeWarning)
 warnings.filterwarnings('ignore', category = UserWarning)
 
 # Helper function
-# Upper threshold
-
 
 # Average migration matrix
 def avg_matrix(
@@ -60,5 +58,39 @@ def avg_matrix(
 
     return transition_matrix
 
+# Upper threshold
+def upper_threshold(
+    df: pd.DataFrame
+) -> np.ndarray:
 
+    """
+    Upper threshold for average migration matrix.
 
+    Description:
+        The migration matrix adopts a concept that the migration are driven
+        by a standard normally distributed of variable. Therefore, instead of
+        describing migration behaviour through transition rates, it is described
+        through a set of threshold (e.g., binning of a standard normal distribution).
+        The migration rate equals to the area enclosed by the boundaries of the bin
+        and the density function.
+
+    Args:
+        df (pd.DataFrame): Input average migration matrix as (n x n) shape.
+
+    Returns:
+        np.ndarray: Upper threshold for average migration matrix (n - 1 x n) shape.
+
+    Notes:
+        - It needs to remove the last row as absorbing state.
+    """
+
+    upper = norm.ppf(
+        1 - df.cumsum(axis = 1)
+    )
+    upper = np.roll(
+        upper,
+        shift = 1,
+        axis = 1
+    )
+
+    return upper[:-1] #Remove the last row
