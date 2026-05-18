@@ -48,3 +48,34 @@ def plot_exclusion(
     plt.tight_layout()
 
     return plt.show()
+
+# Plot matrix
+def plot_avg_matrix(
+    data: pd.DataFrame
+) -> None:
+    
+    """
+    Plot average migration matrix.
+
+    Description:
+        Plot average migration matrix for model.
+
+    Args:
+        data (pd.DataFrame): Average migration matrix.
+
+    Returns:
+        Figure: Showing figure from matplotlib.
+
+    Notes:
+        - N/A
+    """
+    
+    fig, axs = plt.subplots(1, 1, figsize = (10, 6))
+    fig.suptitle("Average migration matrix")
+    sns.heatmap(
+       data, annot = True,
+       fmt = '.2%', cmap = 'RdYlGn_r', cbar = False,
+       ax = axs
+    )
+    
+    return plt.show()
