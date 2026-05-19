@@ -156,3 +156,54 @@ def monthly_matrix(
     return monthly_migration.div(
         monthly_migration.sum(axis = 1), axis = 0
     ).fillna(0).values
+
+# Number of observations on monthly
+def obs_array(
+    df: pd.DataFrame,
+    date_col: str,
+    del1_col: str
+) -> np.ndarray:
+
+    """
+    Monthly observations count.
+
+    Description:
+        Compute the monthly observations initial count. The count is for the cost
+        function for minimise the error during CCI Optimisation process.
+
+    Args:
+        df (pd.DataFrame)         : Input data table as the long format, counted observation.
+        date_col (pd.Series)      : Period column name.
+        del1_col (pd.Series)      : Initial observation column name.
+
+    Returns:
+        np.ndarray: Monthly observations count (m x 1) shape.
+
+    Notes:
+        - The monthly observations count needs to be a symmetry table due to some month may not
+          have full observations count. For example, lack of accounts migrated from 1 to 3.
+          If the table does not symmetry, the matrix is wrong computation.
+        - It needs to remove the last row on each month as absorbing state.
+    """
+
+    # Define all states
+    states = np.arange(df[del1_col].max() + 1) #Migration matrix always defines maximum value at worst
+
+    # Aggregate first
+    df_agg = df.groupby([date_col, del1_col])["n"].sum()
+
+    # Create full index grid
+    full_index = pd.MultiIndex.from_product(
+        [df[date_col].unique(), states],
+        names = [date_col, del1_col]
+    )
+
+    # Reindex to enforce symmetry
+    obs_n = df_agg.reindex(full_index, fill_value = 0)
+    
+    # Remove del = max state (default)
+    obs_n = obs_n.loc[
+        obs_n.index.get_level_values(del1_col) != states[-1]
+    ]
+    
+    return obs_n.values
