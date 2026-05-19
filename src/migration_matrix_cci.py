@@ -238,10 +238,8 @@ def fitted_cdf(
     fitted_matrix = np.column_stack(
         [
             1 - cdf[:, 1],
-            cdf[:, 1] - cdf[:, 2],
-            cdf[:, 2] - cdf[:, 3],
-            cdf[:, 3] - cdf[:, 4],
-            cdf[:, 4]
+            -np.diff(cdf[:, 1:], axis = 1),
+            cdf[:, -1]
         ]
     )
 
