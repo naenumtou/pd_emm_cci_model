@@ -228,19 +228,41 @@ def fitted_cdf(
         np.ndarray: Migration rate array.
 
     Notes:
-        - N/A.
+        - If a single matrix --> shape (n - 1, n).
+        - If a more than one matrix --> shape (m, n - 1, n).
     """
 
     # Compute CDF for entire matrix at once
     cdf = norm.cdf(ppf_matrix)
+    
+    # 2D array
+    if cdf.ndim == 2:
+        cdf_sub = cdf[:, 1:]
+        
+        # Build fitted matrix
+        fitted_matrix = np.column_stack(
+            [
+                1 - cdf_sub[:, 0],
+                cdf_sub[:, :-1] - cdf_sub[:, 1:],
+                cdf_sub[:, -1]
+            ]
+        )
+    
+    # 3D array
+    elif cdf.ndim == 3:
+        cdf_sub = cdf[:, :, 1:]
 
-    # Build fitted matrix
-    fitted_matrix = np.column_stack(
-        [
-            1 - cdf[:, 1],
-            -np.diff(cdf[:, 1:], axis = 1),
-            cdf[:, -1]
-        ]
-    )
+        # Build fitted matrix
+        fitted_matrix = np.concatenate(
+            [
+                1 - cdf_sub[:, :, [0]],
+                cdf_sub[:, :, :-1] - cdf_sub[:, :, 1:],
+                cdf_sub[:, :, [-1]]
+            ],
+            axis = 2
+        )
 
+    else:
+        raise ValueError("ppf matrix must be 2D or 3D")
+        
     return fitted_matrix
