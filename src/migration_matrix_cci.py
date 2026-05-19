@@ -186,7 +186,7 @@ def obs_array(
         del1_col (pd.Series)      : Initial observation column name.
 
     Returns:
-        np.ndarray: Monthly observations count (m x 1) shape.
+        np.ndarray: Monthly observations count (m, n - 1) shape.
 
     Notes:
         - The monthly observations count needs to be a symmetry table due to some month may not
@@ -215,7 +215,11 @@ def obs_array(
         obs_n.index.get_level_values(del1_col) != states[-1]
     ]
     
-    return obs_n.values
+    # Reshape (m, n - 1)
+    m = df[date_col].nunique()
+    n = len(states)
+    
+    return obs_n.values.reshape(m, n - 1)
 
 # Fitted CDF
 def fitted_cdf(
