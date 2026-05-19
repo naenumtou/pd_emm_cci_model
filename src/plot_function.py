@@ -69,7 +69,7 @@ def plot_avg_matrix(
         - N/A
     """
     
-    fig, axs = plt.subplots(1, 1, figsize = (10, 6))
+    fig, axs = plt.subplots(figsize = (10, 6))
     fig.suptitle("Average migration matrix")
     sns.heatmap(
        data, annot = True,
@@ -77,4 +77,38 @@ def plot_avg_matrix(
        ax = axs
     )
     
+    return plt.show()
+
+# Plot CCI
+def plot_cci(
+    data: pd.DataFrame,
+    rho: float
+) -> None:
+    
+    """
+    Plot estimated CCI.
+
+    Description:
+        Plot estimated CCI for model.
+
+    Args:
+        data (pd.DataFrame) : Historical estimated CCI.
+        rho (float)         : Estimated Rho.
+
+    Returns:
+        Figure: Showing figure from matplotlib.
+
+    Notes:
+        - N/A
+    """
+    
+    fig, axs = plt.subplots(figsize = (10, 6))
+    fig.suptitle("Historical CCI")
+    colorY = '#ffd500' #Set color theme --> Yellow
+    axs.plot(data.index, data, color = colorY, linewidth = 2)
+    axs.plot([], [], ' ', label = f'Rho: {rho:.4f}')
+    axs.set_yticklabels([f"{y:.4f}" for y in axs.get_yticks()])
+    axs.legend(frameon = True, facecolor = 'white')
+    plt.tight_layout()
+
     return plt.show()
