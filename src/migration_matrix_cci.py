@@ -347,3 +347,53 @@ def credit_cycle_index(
     error = (obs_[:, :, None] * ((monthly_ - matrix_fitted) ** 2)) / denominator
     
     return np.sum(error)
+
+# Constraint CCI
+def constraint_std(
+    x: np.ndarray
+) -> float:
+    
+    """
+    Constraint CCI.
+
+    Description:
+        The constraint function for CCI is obtained a variance of 1.
+
+    Args:
+        x (np.ndarray): n-periods of random generated numbers.
+                        The first n positions are random generated CCI by monthly basis.
+                        The last position is random generated Rho.
+
+    Returns:
+        float: Variance of CCI equal to 1.
+
+    Notes:
+        - N/A.
+    """
+
+    return np.std(x[:-1]) - 1
+
+# Constraint Rho
+def constraint_corr(
+    x: np.ndarray
+) -> float:
+    
+    """
+    Constraint Rho.
+
+    Description:
+        The constraint function for Rho is between 0% - 100%.
+
+    Args:
+        x (np.ndarray): n-periods of random generated numbers.
+                        The first n positions are random generated CCI by monthly basis.
+                        The last position is random generated Rho.
+
+    Returns:
+        float: Estimated Rho bounds (0-1).
+
+    Notes:
+        - N/A.
+    """
+
+    return 0.999 - np.abs(x[-1])
