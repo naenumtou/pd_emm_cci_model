@@ -34,7 +34,7 @@ def avg_matrix(
         del12_col (pd.Series)     : Performance column name.
 
     Returns:
-        pd.DataFrame: Average migration matrix (n x n) shape.
+        pd.DataFrame: Average migration matrix (n, n) shape.
 
     Notes:
         - N/A.
@@ -78,10 +78,10 @@ def upper_threshold(
         and the density function.
 
     Args:
-        df (pd.DataFrame): Input average migration matrix as (n x n) shape.
+        df (pd.DataFrame): Input average migration matrix as (n, n) shape.
 
     Returns:
-        np.ndarray: Upper threshold for average migration matrix (n - 1 x n) shape.
+        np.ndarray: Upper threshold for average migration matrix (n - 1, n) shape.
 
     Notes:
         - It needs to remove the last row as absorbing state.
@@ -122,7 +122,7 @@ def monthly_matrix(
         del12_col (pd.Series)     : Performance column name.
 
     Returns:
-        np.ndarray: Monthly migration matrix (m x n - 1 x n) shape.
+        np.ndarray: Monthly migration matrix (m, n - 1, n) shape.
 
     Notes:
         - The same computation as average migration matrix but it is in monthly basis.
@@ -156,9 +156,15 @@ def monthly_matrix(
     ]
 
     # Normalize (to percent)
-    return monthly_migration.div(
-        monthly_migration.sum(axis = 1), axis = 0
-    ).fillna(0).values
+    monthly = monthly_migration.div(
+            monthly_migration.sum(axis = 1), axis = 0
+        ).fillna(0)
+
+    # Reshape (m, n - 1, n)
+    m = df[date_col].nunique()
+    n = len(states)
+    
+    return monthly.values.reshape(m, n - 1, n)
 
 # Number of observations on monthly
 def obs_array(
