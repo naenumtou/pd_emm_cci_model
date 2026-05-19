@@ -19,6 +19,32 @@
 
 ## Project Structure
 ```
+pd_emm_cci_model/
+├── model/                                        #Trainned model and parameters (pkl.)
+│   ├── rho.pkl
+│   └── ....pkl  
+├── notebooks/
+│   ├── 01_data_preparation.ipynb
+│   ├── 02_credit_cycle_index.ipynb
+│   └── ....ipynb
+├── src/
+│   ├── data_prep.py
+│   ├── migration_matrix_cci.py
+│   ├── ....py
+│   └── plot_function.py
+├── data/          
+│   ├── processed/
+|   |   ├── train_data.parquet                    #Not tracked by git
+|   |   ├── migration_count.parquet
+|   |   ├── average_matrix.parquet
+|   |   ├── monthly_cci.parquet
+|   |   ├── mev_transformed.parquet
+|   |   └── mev_sign_transformed.parquet
+│   └── raw/
+|   |   ├── usedcar_transaction_score.parquet     #Not tracked by git
+|   └── └── mev_data.csv
+├── requirements.txt
+└── README.md
 ```
 
 ## Project Details
