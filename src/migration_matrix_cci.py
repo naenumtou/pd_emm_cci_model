@@ -207,3 +207,42 @@ def obs_array(
     ]
     
     return obs_n.values
+
+# Fitted CDF
+def fitted_cdf(
+    ppf_matrix: np.ndarray
+) -> np.ndarray:
+
+    """
+    Convert inverse of the cumulative distribution function.
+
+    Description:
+        Convert inverse of the cumulative distribution function to
+        cumulative distribution function. Then, transform it back to
+        fitted migration rate.
+
+    Args:
+        ppf_matrix (np.ndarray): Input inverse of the cumulative distribution function.
+
+    Returns:
+        np.ndarray: Migration rate array.
+
+    Notes:
+        - N/A.
+    """
+
+    # Compute CDF for entire matrix at once
+    cdf = norm.cdf(ppf_matrix)
+
+    # Build fitted matrix
+    fitted_matrix = np.column_stack(
+        [
+            1 - cdf[:, 1],
+            cdf[:, 1] - cdf[:, 2],
+            cdf[:, 2] - cdf[:, 3],
+            cdf[:, 3] - cdf[:, 4],
+            cdf[:, 4]
+        ]
+    )
+
+    return fitted_matrix
