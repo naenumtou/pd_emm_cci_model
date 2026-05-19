@@ -3,6 +3,9 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from scipy.stats import norm
+from scipy.optimize import minimize
+
 warnings.simplefilter(action = 'ignore', category = pd.errors.PerformanceWarning)
 warnings.filterwarnings('ignore', category = RuntimeWarning)
 warnings.filterwarnings('ignore', category = UserWarning)
