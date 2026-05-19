@@ -397,3 +397,66 @@ def constraint_corr(
     """
 
     return 0.999 - np.abs(x[-1])
+
+# Optimization CCI
+def find_cci(
+    df: pd.DataFrame,
+    average_matrix: pd.DataFrame,
+    date_col: str,
+    del1_col: str,
+    del12_col: str,
+    const_cci: Callable = constraint_std,
+    const_rho: Callable = constraint_corr
+) -> OptimizeResult:
+    
+    """
+    Optimization CCI.
+
+    Description:
+        The optimization for CCI.
+
+    Args:
+        df (pd.DataFrame)               : Input data table as the long format, counted observation.
+        average_matrix (pd.DataFrame)   : Input of average migration matrix for upper array computation.
+        date_col (str)                  : Period column name.
+        del1_col (str)                  : Initial observation column name.
+        del12_col (str)                 : Performance column name.
+        const_cci (Callable             : Constraint function for CCI.
+        const_rho (Callable             : Constraint function for Rho.
+
+    Returns:
+        OptimizeResult: The optimization object contained CCI and Rho.
+
+    Notes:
+        - N/A.
+    """
+
+    # Initial CCI --> random
+    init0 = np.hstack(
+        (
+            np.random.randn(df[date_col].nunique()),
+            0.0001
+        )
+    )
+
+    # Constraints functions
+    constraints = [
+        {'type': 'eq', 'fun': const_cci}, #std of CCI = 1
+        {'type': 'ineq', 'fun': const_rho} #|rho| < 1
+    ]
+
+    # Boundaries --> None for CCI, 0-1 for Rho
+    bounds = [(None, None)] * (len(init0) - 1) + [(1e-6, 0.999)]
+
+    # Find CCI
+    result = minimize(
+        fun = credit_cycle_index,
+        x0 = init0,
+        args = (df, average_matrix, date_col, del1_col, del12_col),
+        method  = "SLSQP",
+        constraints = constraints,
+        bounds = bounds,
+        options = {'ftol': 1e-12, 'gtol': 1e-10, 'maxiter': 100_000}
+    )
+    
+    return result
