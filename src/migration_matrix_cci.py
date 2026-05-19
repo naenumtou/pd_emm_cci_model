@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 
 from scipy.stats import norm
-from scipy.optimize import minimize
+from scipy.optimize import minimize, OptimizeResult
+from typing import Callable
 
 warnings.simplefilter(action = 'ignore', category = pd.errors.PerformanceWarning)
 warnings.filterwarnings('ignore', category = RuntimeWarning)
