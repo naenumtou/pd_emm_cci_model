@@ -101,7 +101,7 @@ def monthly_matrix(
     date_col: str,
     del1_col: str,
     del12_col: str
-) -> pd.DataFrame:
+) -> np.ndarray:
     
     """
     Monthly migration matrix.
@@ -119,7 +119,7 @@ def monthly_matrix(
         del12_col (pd.Series)     : Performance column name.
 
     Returns:
-        pd.DataFrame: Monthly migration matrix (m x n - 1 x n) shape.
+        np.ndarray: Monthly migration matrix (m x n - 1 x n) shape.
 
     Notes:
         - The same computation as average migration matrix but it is in monthly basis.
@@ -155,4 +155,4 @@ def monthly_matrix(
     # Normalize (to percent)
     return monthly_migration.div(
         monthly_migration.sum(axis = 1), axis = 0
-    ).fillna(0)
+    ).fillna(0).values
