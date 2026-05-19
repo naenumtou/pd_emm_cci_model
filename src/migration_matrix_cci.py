@@ -11,6 +11,128 @@ warnings.filterwarnings('ignore', category = RuntimeWarning)
 warnings.filterwarnings('ignore', category = UserWarning)
 
 # Helper function
+# Monthly matrix
+def _monthly_matrix(
+    df: pd.DataFrame,
+    date_col: str,
+    del1_col: str,
+    del12_col: str
+) -> np.ndarray:
+    
+    """
+    Monthly migration matrix.
+
+    Description:
+        Compute the monthly migration matrix. The migration matrix simply captures the rate
+        of migration between different buckets for the accounts observed at any observation
+        months to performance months. The rates are computing by counting the accounts
+        migration divided by initial accounts at observed.
+
+    Args:
+        df (pd.DataFrame)   : Input data table as the long format, counted observation.
+        date_col (str)      : Period column name.
+        del1_col (str)      : Initial observation column name.
+        del12_col (str)     : Performance column name.
+
+    Returns:
+        np.ndarray: Monthly migration matrix (m, n - 1, n) shape.
+
+    Notes:
+        - The same computation as average migration matrix but it is in monthly basis.
+        - The monthly migration needs to be a symmetry matrix due to some month may not
+          have full observations count. For example, lack of accounts migrated from 1 to 3.
+          If the table does not symmetry, the matrix is wrong computation.
+        - It needs to remove the last row on each month as absorbing state.
+    """
+
+    # Define all states
+    states = np.arange(df[[del1_col, del12_col]].max().max() + 1) #Migration matrix always defines maximum value at worst
+
+    # Aggregate first
+    df_agg = df.groupby([date_col, del1_col, del12_col])["n"].sum()
+
+    # Create full index grid
+    full_index = pd.MultiIndex.from_product(
+        [df[date_col].unique(), states, states],
+        names = [date_col, del1_col, del12_col]
+    )
+    
+    # Reindex to enforce symmetry
+    df_full = df_agg.reindex(full_index, fill_value = 0)
+
+    # Pivot
+    monthly_migration = df_full.unstack(del12_col, fill_value = 0)
+
+    # Remove del = max state (default)
+    monthly_migration = monthly_migration.loc[
+        monthly_migration.index.get_level_values(del1_col) != states[-1]
+    ]
+
+    # Normalize (to percent)
+    monthly = monthly_migration.div(
+            monthly_migration.sum(axis = 1), axis = 0
+        ).fillna(0)
+
+    # Reshape (m, n - 1, n)
+    m = df[date_col].nunique()
+    n = len(states)
+    
+    return monthly.values.reshape(m, n - 1, n)
+
+# Number of observations on monthly
+def _obs_array(
+    df: pd.DataFrame,
+    date_col: str,
+    del1_col: str
+) -> np.ndarray:
+
+    """
+    Monthly observations count.
+
+    Description:
+        Compute the monthly observations initial count. The count is for the cost
+        function for minimise the error during CCI Optimisation process.
+
+    Args:
+        df (pd.DataFrame)    : Input data table as the long format, counted observation.
+        date_col (str)       : Period column name.
+        del1_col (str)       : Initial observation column name.
+
+    Returns:
+        np.ndarray: Monthly observations count (m, n - 1) shape.
+
+    Notes:
+        - The monthly observations count needs to be a symmetry table due to some month may not
+          have full observations count. For example, lack of accounts migrated from 1 to 3.
+          If the table does not symmetry, the matrix is wrong computation.
+        - It needs to remove the last row on each month as absorbing state.
+    """
+
+    # Define all states
+    states = np.arange(df[del1_col].max() + 1) #Migration matrix always defines maximum value at worst
+
+    # Aggregate first
+    df_agg = df.groupby([date_col, del1_col])["n"].sum()
+
+    # Create full index grid
+    full_index = pd.MultiIndex.from_product(
+        [df[date_col].unique(), states],
+        names = [date_col, del1_col]
+    )
+
+    # Reindex to enforce symmetry
+    obs_n = df_agg.reindex(full_index, fill_value = 0)
+    
+    # Remove del = max state (default)
+    obs_n = obs_n.loc[
+        obs_n.index.get_level_values(del1_col) != states[-1]
+    ]
+    
+    # Reshape (m, n - 1)
+    m = df[date_col].nunique()
+    n = len(states)
+    
+    return obs_n.values.reshape(m, n - 1)
 
 # Average migration matrix
 def avg_matrix(
@@ -29,9 +151,9 @@ def avg_matrix(
         migration divided by initial accounts at observed.
 
     Args:
-        df (pd.DataFrame)         : Input data table as the long format, counted observation.
-        del1_col (pd.Series)      : Initial observation column name.
-        del12_col (pd.Series)     : Performance column name.
+        df (pd.DataFrame)   : Input data table as the long format, counted observation.
+        del1_col (str)      : Initial observation column name.
+        del12_col (str)     : Performance column name.
 
     Returns:
         pd.DataFrame: Average migration matrix (n, n) shape.
@@ -98,129 +220,6 @@ def upper_threshold(
 
     return upper[:-1] #Remove the last row
 
-# Monthly matrix
-def monthly_matrix(
-    df: pd.DataFrame,
-    date_col: str,
-    del1_col: str,
-    del12_col: str
-) -> np.ndarray:
-    
-    """
-    Monthly migration matrix.
-
-    Description:
-        Compute the monthly migration matrix. The migration matrix simply captures the rate
-        of migration between different buckets for the accounts observed at any observation
-        months to performance months. The rates are computing by counting the accounts
-        migration divided by initial accounts at observed.
-
-    Args:
-        df (pd.DataFrame)         : Input data table as the long format, counted observation.
-        date_col (pd.Series)      : Period column name.
-        del1_col (pd.Series)      : Initial observation column name.
-        del12_col (pd.Series)     : Performance column name.
-
-    Returns:
-        np.ndarray: Monthly migration matrix (m, n - 1, n) shape.
-
-    Notes:
-        - The same computation as average migration matrix but it is in monthly basis.
-        - The monthly migration needs to be a symmetry matrix due to some month may not
-          have full observations count. For example, lack of accounts migrated from 1 to 3.
-          If the table does not symmetry, the matrix is wrong computation.
-        - It needs to remove the last row on each month as absorbing state.
-    """
-
-    # Define all states
-    states = np.arange(df[[del1_col, del12_col]].max().max() + 1) #Migration matrix always defines maximum value at worst
-
-    # Aggregate first
-    df_agg = df.groupby([date_col, del1_col, del12_col])["n"].sum()
-
-    # Create full index grid
-    full_index = pd.MultiIndex.from_product(
-        [df[date_col].unique(), states, states],
-        names = [date_col, del1_col, del12_col]
-    )
-    
-    # Reindex to enforce symmetry
-    df_full = df_agg.reindex(full_index, fill_value = 0)
-
-    # Pivot
-    monthly_migration = df_full.unstack(del12_col, fill_value = 0)
-
-    # Remove del = max state (default)
-    monthly_migration = monthly_migration.loc[
-        monthly_migration.index.get_level_values(del1_col) != states[-1]
-    ]
-
-    # Normalize (to percent)
-    monthly = monthly_migration.div(
-            monthly_migration.sum(axis = 1), axis = 0
-        ).fillna(0)
-
-    # Reshape (m, n - 1, n)
-    m = df[date_col].nunique()
-    n = len(states)
-    
-    return monthly.values.reshape(m, n - 1, n)
-
-# Number of observations on monthly
-def obs_array(
-    df: pd.DataFrame,
-    date_col: str,
-    del1_col: str
-) -> np.ndarray:
-
-    """
-    Monthly observations count.
-
-    Description:
-        Compute the monthly observations initial count. The count is for the cost
-        function for minimise the error during CCI Optimisation process.
-
-    Args:
-        df (pd.DataFrame)         : Input data table as the long format, counted observation.
-        date_col (pd.Series)      : Period column name.
-        del1_col (pd.Series)      : Initial observation column name.
-
-    Returns:
-        np.ndarray: Monthly observations count (m, n - 1) shape.
-
-    Notes:
-        - The monthly observations count needs to be a symmetry table due to some month may not
-          have full observations count. For example, lack of accounts migrated from 1 to 3.
-          If the table does not symmetry, the matrix is wrong computation.
-        - It needs to remove the last row on each month as absorbing state.
-    """
-
-    # Define all states
-    states = np.arange(df[del1_col].max() + 1) #Migration matrix always defines maximum value at worst
-
-    # Aggregate first
-    df_agg = df.groupby([date_col, del1_col])["n"].sum()
-
-    # Create full index grid
-    full_index = pd.MultiIndex.from_product(
-        [df[date_col].unique(), states],
-        names = [date_col, del1_col]
-    )
-
-    # Reindex to enforce symmetry
-    obs_n = df_agg.reindex(full_index, fill_value = 0)
-    
-    # Remove del = max state (default)
-    obs_n = obs_n.loc[
-        obs_n.index.get_level_values(del1_col) != states[-1]
-    ]
-    
-    # Reshape (m, n - 1)
-    m = df[date_col].nunique()
-    n = len(states)
-    
-    return obs_n.values.reshape(m, n - 1)
-
 # Fitted CDF
 def fitted_cdf(
     ppf_matrix: np.ndarray
@@ -279,3 +278,72 @@ def fitted_cdf(
         raise ValueError("ppf matrix must be 2D or 3D")
         
     return fitted_matrix
+
+# CCI
+def credit_cycle_index(
+    x: np.ndarray,
+    df: pd.DataFrame,
+    average_matrix: pd.DataFrame,
+    date_col: str,
+    del1_col: str,
+    del12_col: str
+) -> float:
+    
+    """
+    Credit Cycle Index.
+
+    Description:
+        Getting the average observed migration matrix, upper bounds are computed
+        to derive the fitted transmigrationition matrix. The bounds are determined
+        by obtaining the inverse normal value based on the migration rates.
+        
+        Construct fitted migration matrix to fit observed migration matrix to
+        average observed migration matrix.
+
+        As the migration rates are fitted by computing the deviation from a base matrix,
+        it is then able to compute an error term that represents deviation for pre-defined Rho.
+
+        The model is optimized by minimizing the error term for a pre-defined Rho.
+        The process is iterated multiple times until CCI or Z-Index obtains a variance of 1.
+        The Rho can be interpreted as the weightage of the relationship between the
+        migration rate and CCI or Z-Index at time t.
+
+    Args:
+        x (np.ndarray)                  : n-periods of random generated numbers.
+                                        The first n positions are random generated CCI by monthly basis.
+                                        The last position is random generated Rho.
+        df (pd.DataFrame)               : Input data table as the long format, counted observation.
+        average_matrix (pd.DataFrame)   : Input of average migration matrix for upper array computation.
+        date_col (str)                  : Period column name.
+        del1_col (str)                  : Initial observation column name.
+        del12_col (str)                 : Performance column name.
+
+    Returns:
+        float: The sum of squared error between fitted migration matrix and observed migration matrix.
+
+    Notes:
+        - N/A.
+    """
+
+    # Parameters
+    eps = 1e-12 #Avoid division by zero
+    rho = x[-1] #Set the rho at last position
+
+    # Data
+    upper_ = upper_threshold(average_matrix)
+    monthly_ = _monthly_matrix(df, date_col, del1_col, del12_col)
+    obs_ = _obs_array(df, date_col, del1_col)
+    
+    # Fitting upper
+    monthly_fitted = (
+        upper_[None, :, :] - (np.sqrt(rho) * x[:-1, None, None]) #Without last position
+    ) / np.sqrt(1 - rho)
+
+    # Fitted
+    matrix_fitted = fitted_cdf(monthly_fitted)
+
+    # Error
+    denominator = np.clip(matrix_fitted * (1 - matrix_fitted), eps, None)
+    error = (obs_[:, :, None] * ((monthly_ - matrix_fitted) ** 2)) / denominator
+    
+    return np.sum(error)
