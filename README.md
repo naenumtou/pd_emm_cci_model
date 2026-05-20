@@ -63,11 +63,21 @@ pd_emm_cci_model/
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/465f0b6f-95d8-4bfe-8c71-9b54643acff7" />
 </p>
 
+<p align="center">
+<img width="989" height="593" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/c8359005-8fb0-4238-bdcd-cdbf3141a19c" />
+</p>
+
 ### 2. Forward-looking Model
 The forward-looking model processes are finding the relationship between Credit Cycle Index (CCI, Z-Index) with macroeconomics varialbes (MEV). The processes are similar to others ODR Model but changed the dependence variabale from ODR to CCI. In this repository is not covered the forward-looking model but it can refer to [this repository](https://github.com/naenumtou/pd_cohort_model/blob/main/README.md#2-forward-looking-model) for the forward-looking model consideration.
 
 #### 2.1 Model Back-testing
 The model back-testing of actual CCI and predicted CCI from the regression model have been displayed in the following section. The visualisation of model back-testing in the following:
+
+<p align="center">
+<img width="989" height="593" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/e64e6d97-cafc-4de5-b31e-9d8a16c284c7" />
+</p>
+
+> Note: It is a ramdom selection model. No expert input in this model.
 
 ### 3. Lifetime Model
 <p align="center">
