@@ -22,15 +22,18 @@
 pd_emm_cci_model/
 ├── model/                                        #Trainned model and parameters (pkl.)
 │   ├── rho.pkl
-│   └── ....pkl  
+│   └── fwl_model.pkl  
 ├── notebooks/
 │   ├── 01_data_preparation.ipynb
 │   ├── 02_credit_cycle_index.ipynb
-│   └── ....ipynb
+│   ├── 03_fwl_model.ipynb
+│   └── 04_markov_liftetime.ipynb
 ├── src/
 │   ├── data_prep.py
 │   ├── migration_matrix_cci.py
-│   ├── ....py
+│   ├── regression_model.py
+│   ├── lifetime_model.py
+│   ├── stats_testing.py
 │   └── plot_function.py
 ├── data/          
 │   ├── processed/
