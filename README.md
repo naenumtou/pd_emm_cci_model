@@ -63,6 +63,13 @@ pd_emm_cci_model/
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/465f0b6f-95d8-4bfe-8c71-9b54643acff7" />
 </p>
 
+$$ P_t(ij) = \Phi\left(\frac{x_{i+1}^{\,j} - \sqrt{\rho}\, z_t}{\sqrt{1 - \rho}}\right) - \Phi\left(\frac{x_i^{\,j} - \sqrt{\rho}\, z_t}{\sqrt{1 - \rho}}\right) $$
+
+$$
+\min_{z_t} \sum_j \sum_i n_{t,G} \frac{\left[P_t(i,j) - \Delta\left(x_{i+1}^j, x_i^j, z_t\right)\right]^2}{\Delta\left(x_{i+1}^j, x_i^j, z_t\right)\left[1 - \Delta\left(x_{i+1}^j, x_i^j, z_t\right)\right]}
+$$
+
+
 <p align="center">
 <img width="989" height="593" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/c8359005-8fb0-4238-bdcd-cdbf3141a19c" />
 </p>
@@ -85,4 +92,4 @@ The model back-testing of actual CCI and predicted CCI from the regression model
 </p>
 
 
-
+$$ P_t(i,j) = \Phi\left(\frac{x_{i+1}^j - \sqrt{\rho}\, \hat{z}(t)}{\sqrt{1 - \rho}}\right) - \Phi\left(\frac{x_i^j - \sqrt{\rho}\, \hat{z}(t)}{\sqrt{1 - \rho}}\right) $$
