@@ -93,3 +93,6 @@ The model back-testing of actual CCI and predicted CCI from the regression model
 
 
 $$ P_t(i,j) = \Phi\left(\frac{x_{i+1}^j - \sqrt{\rho}\, \hat{z_t}}{\sqrt{1 - \rho}}\right) - \Phi\left(\frac{x_i^j - \sqrt{\rho}\, \hat{z_t}}{\sqrt{1 - \rho}}\right) $$
+
+## License
+MIT · Built for learning purposes
