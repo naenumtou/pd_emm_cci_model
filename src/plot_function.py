@@ -330,3 +330,41 @@ def plot_backtest(
     plt.tight_layout()
     
     return plt.show()
+
+# Plot lifetime
+def plot_lifetime(
+    data: pd.DataFrame
+) -> None:
+    
+    """
+    Plot Lifetime PD Term structure.
+
+    Description:
+        Plot Lifetime PD Term structure.
+
+    Args:
+        data (pd.DataFrame) : Lifetime PD Term structure.
+
+    Returns:
+        Figure: Showing figure from matplotlib.
+
+    Notes:
+        - N/A
+    """
+    
+    fig, axs = plt.subplots(figsize = (10, 6))
+    fig.suptitle("Lifetime PD Term structure")
+    
+    for idx, row in data.iterrows():
+        axs.plot(
+            data.columns, row.values, label = f'Bucket {idx}',
+            linewidth = 2
+        )
+    axs.set_yticklabels([f"{y * 100:.2f}%" for y in axs.get_yticks()])
+    axs.set_xticklabels([f"{int(x) + 1}" for x in axs.get_xticks()])
+    axs.set_xlabel("Years")
+    axs.set_ylabel("PD")
+    axs.legend(frameon = True, facecolor = 'white')
+    plt.tight_layout()
+
+    return plt.show()
