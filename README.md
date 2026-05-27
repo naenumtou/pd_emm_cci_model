@@ -22,7 +22,8 @@
 pd_emm_cci_model/
 ├── model/                                        #Trainned model and parameters (pkl.)
 │   ├── rho.pkl
-│   └── fwl_model.pkl  
+│   ├── fwl_model.pkl
+│   └── lifetime_pd_term_structure.pkl  
 ├── notebooks/
 │   ├── 01_data_preparation.ipynb
 │   ├── 02_credit_cycle_index.ipynb
