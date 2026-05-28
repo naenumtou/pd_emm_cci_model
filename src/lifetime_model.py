@@ -9,6 +9,7 @@ def matrix_lifetime(
     years: int,
     mean_reversion: bool = False
 ) -> pd.DataFrame:
+    
     """
     Lifetime PD by matrix multiplication.
 
