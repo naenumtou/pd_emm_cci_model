@@ -9,13 +9,22 @@
 ![Seaborn](https://img.shields.io/badge/Seaborn-Visualization-3775a9?style=for-the-badge&logo=plotly&logoColor=white)
 ![MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-
+This repository implements a **migration matrix-based Probability of Default (PD)** model aligned with IFRS 9 Expected Credit Loss (ECL) requirements. The model estimates an **Empirical Migration Matrix (EMM)** from historical loan-level data and applies a **Credit Cycle Index (CCI)** that derived from the Vasicek (1987) single factor framework to condition the Through-the-Cycle (TTC) matrix into a Point-in-Time (PiT) matrix under multiple macroeconomic scenarios. The resulting **PD term structures** are suitable for Stage 1, Stage 2, and lifetime ECL calculation.
 
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/20c9f374-a844-45a5-ba3e-8e9f30ed4ed1" />
 </p>
 
 ## Overview
+his project implements an **EMM CCI PD Model** designed to support IFRS 9 ECL calculation. The model estimates a TTC migration matrix from observed loan grade transitions, extracts a time series of Credit Cycle Index (Z-Score, Z-Index) that summarises the systematic credit environment at each period, and links it to macroeconomic variables to generate the forward-looking PiT migration matrices and cumulative PD Term structures.
+
+The implementation emphasises:
+- Transparent, auditable migration matrix construction suitable for model governance
+- Closed-form and optimisation-based CCI Estimation
+- Vectorised numerical computation for efficiency and scalability
+- Flexible scenario conditioning across baseline, adverse, and severe paths
+
+The resulting PD Term structures can be directly used in Stage 1 and Stage 2 ECL Calculation. The project is intended to serve as a practical reference implementation for credit risk practitioners, model developers, and validators. All calculations are made explicit, facilitating validation, backtesting, and model explainability.
 
 ## Project Structure
 ```
@@ -54,15 +63,19 @@ pd_emm_cci_model/
 ## Project Details
 ### 0. Model Segmentation
 ### 1. Unbias Model
-#### 1.1 Empirical Migration Matrix
+#### 1.1 Empirical Migration Matrix (TTC)
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/a6388850-e891-42ac-a696-c6409f8a1a9e" />
 </p>
+
+**Empirical Migration Matrix:** A Through-the-Cycle (TTC) Migration matrix is estimated from historical loan level data by tracking grade transitions over a defined observation window. For each period, the number of transitions from grade $i$ to grade $j$ is counted and normalised by the total population starting in grade $i$. The long-run average across all periods forms the TTC matrix $\mathbf{P}_{\text{TTC}}$, with the final column representing the observed default rate per grade.
 
 #### 1.2 Credit Cycle Index
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/465f0b6f-95d8-4bfe-8c71-9b54643acff7" />
 </p>
+
+**CCI Model:** The Credit Cycle Index is estimated by fitting a time-varying Z-Score to each period's observed migration matrix. Based on the Vasicek (1987) single-factor model:
 
 $$ P_t(ij) = \Phi\left(\frac{x_{i+1}^{\,j} - \sqrt{\rho}\, z_t}{\sqrt{1 - \rho}}\right) - \Phi\left(\frac{x_i^{\,j} - \sqrt{\rho}\, z_t}{\sqrt{1 - \rho}}\right) $$
 
@@ -70,6 +83,7 @@ $$
 \min_{z_t} \sum_j \sum_i n_{t,G} \frac{\left[P_t(i,j) - \Delta\left(x_{i+1}^j, x_i^j, z_t\right)\right]^2}{\Delta\left(x_{i+1}^j, x_i^j, z_t\right)\left[1 - \Delta\left(x_{i+1}^j, x_i^j, z_t\right)\right]}
 $$
 
+The transition probabilities are expressed as threshold crossings of a standard normal distribution (Belkin, Suchower & Forest, 1998). For each period $t$, the CCI ($Z_t$) and asset correlation ($\rho$) are jointly estimated by minimising the weighted squared error between observed and model implied migration probabilities, subject to the constraint $\text{std}(\{Z_t\}) = 1$. A simplified closed-form variant is also provided for cases where only $\rho$ optimisation is required.
 
 <p align="center">
 <img width="989" height="593" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/c8359005-8fb0-4238-bdcd-cdbf3141a19c" />
