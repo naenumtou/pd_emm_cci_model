@@ -63,12 +63,18 @@ pd_emm_cci_model/
 ## Project Details
 ### 0. Model Segmentation
 ### 1. Unbias Model
+
+
 #### 1.1 Empirical Migration Matrix (TTC)
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/a6388850-e891-42ac-a696-c6409f8a1a9e" />
 </p>
 
 **Empirical Migration Matrix:** A Through-the-Cycle (TTC) Migration matrix is estimated from historical loan level data by tracking grade transitions over a defined observation window. For each period, the number of transitions from grade $i$ to grade $j$ is counted and normalised by the total population starting in grade $i$. The long-run average across all periods forms the TTC matrix $\mathbf{P}_{\text{TTC}}$, with the final column representing the observed default rate per grade.
+
+<p align="center">
+<img width="838" height="585" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/b33b9451-c83f-44ff-831d-66fa38fd7ff1" />
+</p>
 
 #### 1.2 Credit Cycle Index
 <p align="center">
@@ -102,12 +108,23 @@ The model back-testing of actual CCI and predicted CCI from the regression model
 > Note: It is a ramdom selection model. No expert input in this model.
 
 ### 3. Lifetime Model
+**Conditional PIT Matrix:** For each forecast horizon $h$ and scenario, the TTC matrix is shifted using the forecast $\hat{Z}_{t+h}$ to produce a period-specific PiT migration matrix by the formula below:
+
+$$ P_t(i,j) = \Phi\left(\frac{x_{i+1}^j - \sqrt{\rho}\, \hat{z_t}}{\sqrt{1 - \rho}}\right) - \Phi\left(\frac{x_i^j - \sqrt{\rho}\, \hat{z_t}}{\sqrt{1 - \rho}}\right) $$
+
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/9ecee832-a2f1-4597-8b24-a4f3ba1a1fc9" />
 </p>
 
+The cumulative multi-periods of PD Term structures are derived by chaining:
 
-$$ P_t(i,j) = \Phi\left(\frac{x_{i+1}^j - \sqrt{\rho}\, \hat{z_t}}{\sqrt{1 - \rho}}\right) - \Phi\left(\frac{x_i^j - \sqrt{\rho}\, \hat{z_t}}{\sqrt{1 - \rho}}\right) $$
+$$\mathbf{P}(h) = \prod_{t=1}^{h} \mathbf{P}_t^{\text{PiT}}$$
+
+The last column of $\mathbf{P}(h)$ gives the cumulative PD per grade at horizon $h$, directly applicable to IFRS 9 Stage 1 (12-month) and Stage 2 (lifetime) ECL Calculation.
+
+<p align="center">
+<img width="989" height="592" alt="การพัฒนาแบบจำลอง IFRS 9 PD Model ด้วย transition matrix แบบ credit cycle index ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/0e73d859-3076-4e15-87a3-126ee729ba1e" />
+</p>
 
 ## License
 MIT · Built for learning purposes
